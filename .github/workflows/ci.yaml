@@ -34,6 +34,8 @@ jobs:
     - name: Debug Docker authentication
       run: cat ~/.docker/config.json
 
+    - name: Show active gcloud account
+      run: gcloud auth list
 
     - name: Push image to Artifact Registry
       run: |
