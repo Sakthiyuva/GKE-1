@@ -13,9 +13,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    #- name: Set up Docker Buildx
-     # uses: docker/setup-buildx-action@v3
-
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
       with:
@@ -29,12 +26,15 @@ jobs:
     - name: List files in build context
       run: ls -la
 
-    - name: Build and push to Artifact Registry
+    - name: Build Docker image
       run: |
         docker build \
-          --push \
-          --tag us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/k8-repo/hello-world:latest \
+          -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/k8-repo/hello-world:latest \
           .
+
+    - name: Push image to Artifact Registry
+      run: |
+        docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/k8-repo/hello-world:latest
 
     - name: Get GKE credentials
       run: gcloud container clusters get-credentials k8-private --region us-central1
@@ -43,4 +43,5 @@ jobs:
       run: |
         kubectl apply -f k8s/deployment.yaml
         kubectl apply -f k8s/service.yaml
+
 
