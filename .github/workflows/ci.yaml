@@ -26,6 +26,9 @@ jobs:
     - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
+    - name: List files in build context
+      run: ls -la
+
     - name: Build and push to Artifact Registry
       run: |
         docker buildx build \
