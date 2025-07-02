@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: hello-world
-        image: your-dockerhub-username/hello-world-app:latest
+        image: us-central1-docker.pkg.dev/sound-chimera-464005-q1/k8-repo/hello-world
         ports:
         - containerPort: 8080
         resources:
