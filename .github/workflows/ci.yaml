@@ -31,6 +31,9 @@ jobs:
         docker build \
           -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/k8-repo/hello-world:latest \
           .
+    - name: Debug Docker authentication
+      run: cat ~/.docker/config.json
+
 
     - name: Push image to Artifact Registry
       run: |
