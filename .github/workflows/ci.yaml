@@ -37,5 +37,5 @@ jobs:
 
     - name: Deploy to GKE
       run: |
-        kubectl set image deployment/hello-world-deployment hello-world=us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/my-repo/hello-world-app:latest
+        kubectl apply -f k8s/deployment.yaml
         kubectl apply -f k8s/service.yaml
