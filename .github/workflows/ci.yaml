@@ -31,7 +31,7 @@ jobs:
           .
 
     - name: Get GKE credentials
-      run: gcloud container clusters get-credentials hello-autopilot-private --region us-central1
+      run: gcloud container clusters get-credentials k8-private --region us-central1
 
     - name: Deploy to GKE
       run: |
