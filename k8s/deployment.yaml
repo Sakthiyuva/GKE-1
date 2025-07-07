@@ -12,6 +12,8 @@ spec:
       labels:
         app: hello-world
     spec:
+      imagePullSecrets:
+      - name: artifact-registry-secret
       containers:
       - name: hello-world
         image: us-central1-docker.pkg.dev/sound-chimera-464005-q1/k8-repo/hello-world
