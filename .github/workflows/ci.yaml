@@ -42,7 +42,7 @@ jobs:
         docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/k8-repo/hello-world:latest
 
     - name: Get GKE credentials
-      run: gcloud container clusters get-credentials k8-private --region us-central1
+      run: gcloud container clusters get-credentials k8-cluster --region us-central1
 
     - name: Deploy to GKE
       run: |
