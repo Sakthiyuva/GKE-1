@@ -37,6 +37,11 @@ jobs:
     - name: Show active gcloud account
       run: gcloud auth list
 
+    - name: List Artifact Registry repos
+      run: |
+       gcloud artifacts repositories list --location=us-central1 --project=${{ secrets.GCP_PROJECT }}
+
+
     - name: Push image to Artifact Registry
       run: |
         docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/k8-repo/hello-world:latest
