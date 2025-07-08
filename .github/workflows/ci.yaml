@@ -20,9 +20,14 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y openvpn3
 
-    - name: Connect to OpenVPN
+  
+    - name: Save VPN Config to File
       run: |
         echo "${{ secrets.VPN_CONFIG }}" > vpn_config.ovpn
+        ls -la vpn_config.ovpn
+
+    - name: Connect to OpenVPN
+      run: |
         sudo openvpn3 session-start vpn_config.ovpn
 
     - name: Authenticate to Google Cloud
