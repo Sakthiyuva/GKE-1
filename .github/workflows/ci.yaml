@@ -15,10 +15,11 @@ jobs:
 
     - name: Install GKE Auth Plugin
       run: |
-       echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
-       curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-       sudo apt-get update
-       sudo apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin
+        curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/cloud.google.gpg > /dev/null
+        echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
+        sudo apt-get update
+        sudo apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin
+
 
     - name: Configure gcloud to use GKE auth plugin
       run: gcloud config set container/use_application_default_credentials true
