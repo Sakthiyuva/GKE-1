@@ -28,7 +28,7 @@ jobs:
 
     - name: Connect to OpenVPN
       run: |
-        sudo openvpn3 session-start vpn_config.ovpn
+        sudo openvpn3 session-start --config vpn_config.ovpn
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
