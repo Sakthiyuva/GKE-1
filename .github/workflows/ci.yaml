@@ -1,68 +1,51 @@
-name: Build and Deploy to GKE
+name: Deploy to GKE via IAP
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  build-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install OpenVPN 3
-      run: |
-        sudo curl -fsSL https://packages.openvpn.net/packages-repo.gpg | sudo tee /etc/apt/trusted.gpg.d/openvpn.asc
-        echo "deb http://packages.openvpn.net/openvpn3/debian $(. /etc/os-release; echo $VERSION_CODENAME) main" | sudo tee /etc/apt/sources.list.d/openvpn-packages.list
-        sudo apt-get update
-        sudo apt-get install -y openvpn3
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token
+          workload_identity_provider: "projects/19102981664/locations/global/workloadIdentityPools/github-pool/providers/github-provider-2"
+          service_account: "github-cicd@sound-chimera-464005-q1.iam.gserviceaccount.com"
 
-  
-    - name: Save VPN Config to File
-      run: |
-        echo "${{ secrets.VPN_CONFIG }}" > vpn_config.ovpn
-        ls -la vpn_config.ovpn
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
 
-    - name: Connect to OpenVPN
-      run: |
-        sudo openvpn3 session-start --config vpn_config.ovpn
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker [REGION]-docker.pkg.dev
 
-    - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_NAME=us-central1-docker.pkg.dev/sound-chimera-464005-q1/k8-repo/hello-world:$GITHUB_SHA
+          
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
 
-    - name: Install GKE Auth Plugin
-      run: |
-        curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/cloud.google.gpg > /dev/null
-        echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
-        sudo apt-get update
-        sudo apt-get install -y google-cloud-cli-gke-gcloud-auth-plugin
+      - name: Get GKE credentials (IAP tunnel)
+        run: |
+          gcloud container clusters get-credentials k8-cluster \
+            --region=us-central1 \
+            --project=sound-chimera-464005-q1 \
+            --internal-ip \
+            --tunnel-through-iap
 
-    - name: Configure gcloud to use GKE auth plugin
-      run: gcloud config set container/use_application_default_credentials true
-
-    - name: Configure Docker for Artifact Registry
-      run: gcloud auth configure-docker us-central1-docker.pkg.dev
-
-    - name: Build Docker image
-      run: |
-          docker build \
-          -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/k8-repo/hello-world:${{ github.sha }} \
-          .
-
-    - name: Push image to Artifact Registry
-      run: |
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/k8-repo/hello-world:${{ github.sha }}
-
-
-    - name: Get GKE credentials
-      run: gcloud container clusters get-credentials k8-cluster --region us-central1
-
-    - name: Deploy to GKE
-      run: |
-         kubectl set image deployment/hello-world-deployment hello-world=us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/k8-repo/hello-world:${{ github.sha }}
-         kubectl rollout status deployment/hello-world-deployment
+      - name: Deploy to GKE
+        run: |
+           kubectl set image deployment/hello-world-deployment hello-world=us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/k8-repo/hello-world:${{ github.sha }}
+           kubectl rollout status deployment/hello-world-deployment
